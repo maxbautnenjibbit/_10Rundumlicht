@@ -5,57 +5,69 @@
 
 #include "mbed.h"
 
-int SEGMENTE [10] = {
-                      0b00111111,
-                      0b00000110,
-                      0b01011011,
-                      0b01001111,
-                      0b01100110,
-                      0b01101101,
-                      0b01111101,
-                      0b00000111,
-                      0b01111111,
-                      0b01101111
-                    };
-
-PortOut segment(PortC, 0xFF);
-
-void anzeigen(int anzahl) {
-    segment = SEGMENTE [anzahl];
+void sleepTime() {
+    ThisThread::sleep_for(500ms);
 }
-
 
 int main()
 {
-    DigitalOut einerstelle(PC_11);
+    DigitalIn keyZero(PB_0);
+    keyZero.mode(PullDown);
 
-    DigitalIn keyEntry(PA_1);
-    keyEntry.mode(PullDown);
+    DigitalIn keySeven(PB_7);
+    keySeven.mode(PullDown);
 
-    DigitalIn keyOut(PA_6);
-    keyOut.mode(PullDown);
+    PortOut lights(PortC, 0b1111);
+    lights = 0;
 
-    einerstelle = 1;
-
-    int parkingLots = 9;
-
-    anzeigen(parkingLots);
+    int mode = 0;
 
     while (true) {
-        if (keyEntry) {
-            if (parkingLots > 0) {
-                anzeigen(--parkingLots);
-
-                while (keyEntry);
-            }
+        if (keyZero && keySeven) {
+            mode = 0;
+        } else if (!keyZero && keySeven) {
+            mode = 3;
+        } else if (keyZero && !keySeven) {
+            mode = 2;
+        } else {
+            mode = 1;
         }
 
-        if (keyOut) {
-            if (parkingLots < 9) {
-                anzeigen(++parkingLots);
-
-                while (keyOut);
-            }
+        switch (mode) {
+            case 0:
+                lights = 0;
+                break;
+            case 1:
+                lights = 0b0001; // >>
+                sleepTime();
+                lights = 0b0010;
+                sleepTime();
+                lights = 0b0100;
+                sleepTime();
+                lights = 0b1000;
+                sleepTime();
+                break;
+            case 2:
+                lights = 0b0011;
+                sleepTime();
+                lights = 0b0110;
+                sleepTime();
+                lights = 0b1100;
+                sleepTime();
+                lights = 0b1001;
+                sleepTime();
+                break;
+            case 3:
+                lights = 0b0001;
+                sleepTime();
+                lights = 0b1000;
+                sleepTime();
+                lights = 0b0100;
+                sleepTime();
+                lights = 0b0010;
+                sleepTime();
+                break;
         }
     }
+
 }
